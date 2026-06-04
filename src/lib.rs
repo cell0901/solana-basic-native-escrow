@@ -22,7 +22,7 @@ struct Vault { // 32 +  32 + 32 + 8 + 8 + 1
 
 #[derive(BorshDeserialize, BorshSerialize)]
 enum EscrowInsruction {
-    InitilalizeOffer {
+    InitializeOffer {
         token_a_amount:  u64,
         token_b_amount:  u64, // amount he wants
         offer_id: u64,
@@ -38,24 +38,22 @@ fn process_instruction(
 ) -> Result<(), ProgramError>{
     
     let mut iter = accounts.iter();
-    
-    let maker = next_account_info(&mut iter)?; // the one called the makeOffer
-    let offer_pda_account = next_account_info(&mut iter)?;
-    let token_a_mint = next_account_info(&mut iter)?;
-    let token_b_mint = next_account_info(&mut iter)?;
-    let taker_account = next_account_info(&mut iter)?;
-    let pda_ata_info= next_account_info(&mut iter)?;
-    let taker_ata_token_b_info= next_account_info(&mut iter)?;
-    let taker_ata_token_a_info= next_account_info(&mut iter)?;
-    let maker_ata_info= next_account_info(&mut iter)?;
-    let token_program= next_account_info(&mut iter)?; // required to create ata
-    let system_program = next_account_info(&mut iter)?;
-    let ata_program = next_account_info(&mut iter)?; 
 
     let response = EscrowInsruction::try_from_slice(instruction_data)?;
    
     match response {
-        EscrowInsruction::InitilalizeOffer { token_a_amount, token_b_amount, offer_id }=> {
+        EscrowInsruction::InitializeOffer { token_a_amount, token_b_amount, offer_id }=> {
+            let maker = next_account_info(&mut iter)?; // the one called the makeOffer
+            let token_a_mint = next_account_info(&mut iter)?;
+            let token_b_mint = next_account_info(&mut iter)?;
+            let offer_pda_account = next_account_info(&mut iter)?;
+            let pda_ata_info= next_account_info(&mut iter)?;
+            let maker_ata_a_info= next_account_info(&mut iter)?;
+            let token_program= next_account_info(&mut iter)?; // required to create ata
+            let system_program = next_account_info(&mut iter)?;
+            let ata_program = next_account_info(&mut iter)?; 
+
+
             
             if !maker.is_signer {
                 return Err(ProgramError::MissingRequiredSignature);
@@ -138,7 +136,7 @@ fn process_instruction(
 
             let maker_ata = get_associated_token_address(maker.key, token_a_mint.key);
 
-            if *maker_ata_info.key != maker_ata {
+            if *maker_ata_a_info.key != maker_ata {
                 return Err(ProgramError::InvalidArgument);
             }
 
@@ -156,7 +154,7 @@ fn process_instruction(
 
             invoke(&transfer_instruction, 
                 &[
-                    maker_ata_info.clone(),
+                    maker_ata_a_info.clone(),
                     pda_ata_info.clone(), // destination
                     maker.clone(),
                     token_program.clone(),
@@ -171,6 +169,19 @@ fn process_instruction(
            
         }
         EscrowInsruction::TakeOffer => { 
+            let maker = next_account_info(&mut iter)?; // the one called the makeOffer
+            let taker_account = next_account_info(&mut iter)?;
+            let token_a_mint = next_account_info(&mut iter)?;
+            let token_b_mint = next_account_info(&mut iter)?;
+            let offer_pda_account = next_account_info(&mut iter)?;
+            let pda_ata_info= next_account_info(&mut iter)?;
+            let maker_ata_b_info= next_account_info(&mut iter)?;
+            let taker_ata_token_b_info= next_account_info(&mut iter)?;
+            let taker_ata_token_a_info= next_account_info(&mut iter)?;
+            let token_program= next_account_info(&mut iter)?; // required to create ata
+            let system_program = next_account_info(&mut iter)?;
+            let ata_program = next_account_info(&mut iter)?; 
+
             let offer_vault = Vault::try_from_slice(&offer_pda_account.data.borrow())?;
 
             if offer_pda_account.owner != program_id { // check
@@ -206,7 +217,7 @@ fn process_instruction(
                 return  Err(ProgramError::InvalidArgument);
             }
 
-            if *maker_ata_info.key != get_associated_token_address(maker.key, token_b_mint.key) {
+            if *maker_ata_b_info.key != get_associated_token_address(maker.key, token_b_mint.key) {
                 return Err(ProgramError::InvalidArgument);
             }
 
@@ -216,6 +227,7 @@ fn process_instruction(
                 maker.key, 
                 token_b_mint.key,
                 token_program.key);
+
             let maker_ata_token_b = get_associated_token_address(maker.key, token_b_mint.key);
 
             invoke(
@@ -223,7 +235,7 @@ fn process_instruction(
                 &[
                     taker_account.clone(),// payer
                     maker.clone(), // needed since we creating for maker
-                    maker_ata_info.clone(), // the account that is being created
+                    maker_ata_b_info.clone(), // the account that is being created
                     token_b_mint.clone(),
                     token_program.clone(),
                     ata_program.clone(),
@@ -249,7 +261,7 @@ fn process_instruction(
             invoke(&transfer_instruction, 
                 &[
                     taker_ata_token_b_info.clone(),
-                    maker_ata_info.clone(),
+                    maker_ata_b_info.clone(), // transfer to maker ata b
                     taker_account.clone(),
                     token_program.clone(),
 

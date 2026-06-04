@@ -10,5 +10,6 @@ crate-type = ["cdylib", "lib"]
 [dependencies]
 borsh = "1.6.1"
 solana-program = "2.2.0"
-spl-associated-token-account = "7.0.0"
+# need to add no-entrypoint since these program crate also have entrpoint and custom heap so it dont conflict with our program entrypoint
+spl-associated-token-account = {version = "7.0.0", features = [ "no-entrypoint"]} 
 spl-token = "8.0.0"
