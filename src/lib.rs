@@ -212,11 +212,6 @@ fn process_instruction(
             if pda != *offer_pda_account.key {
                 return  Err(ProgramError::InvalidArgument);
             }
-
-            if *maker.key != offer_vault.maker {
-                return  Err(ProgramError::InvalidArgument);
-            }
-
             if *maker_ata_b_info.key != get_associated_token_address(maker.key, token_b_mint.key) {
                 return Err(ProgramError::InvalidArgument);
             }
@@ -280,7 +275,7 @@ fn process_instruction(
 
                 &[
                    taker_account.clone(), // payer
-                    taker_ata_token_a_info.clone(),
+                taker_ata_token_a_info.clone(),
                    taker_account.clone(), // owner
                     token_a_mint.clone(),
                     system_program.clone(),

@@ -1,0 +1,23 @@
+{
+  "name": "client",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@solana-program/system": "^0.12.2",
+    "@solana-program/token": "^0.13.0",
+    "@solana/kit": "^6.9.0",
+    "@types/bn.js": "^5.2.0",
+    "@types/bs58": "^5.0.0",
+    "bn.js": "^5.2.3",
+    "borsh": "^2.0.0",
+    "bs58": "^6.0.0",
+    "litesvm": "^1.1.0"
+  }
+}
