@@ -28,6 +28,5 @@ solana program deploy target/deploy/escrow.so
 
 ## TODO
 
-- [ ] LiteSVM tests
 - [ ] `CancelOffer` instruction — maker reclaims token A if no taker
 
